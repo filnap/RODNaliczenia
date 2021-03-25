@@ -5,3 +5,13 @@
 /RODNaliczeniaV2.4.exe
 /RODNaliczeniaV2.3.exe
 /RODNaliczenia.spec
+/.idea/.gitignore
+/.idea/aws.xml
+/.idea/codeStyles/codeStyleConfig.xml
+/dane.txt
+/.idea/encodings.xml
+/.idea/misc.xml
+/.idea/modules.xml
+/.idea/inspectionProfiles/profiles_settings.xml
+/.idea/test.iml
+/.idea/vcs.xml

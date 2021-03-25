@@ -14,7 +14,7 @@ print("Powszechnej Licencji Publicznej GNU powinna zostać ci dostarczona razem 
 print("--------------------------------------------------------------------------------------------------------")
 print("Program powinien być uruchamiany na serwerze")
 print("Proszę sprawdzić plik config.txt pod kątem zgodności danych domyślnych z tymi na Państwa Ogrodzie")
-print("Potencjalne aktualizacje programu będą dostępne pod adresem: www.github.com/filnap/NaliczeniaROD")
+print("Potencjalne aktualizacje programu będą dostępne pod adresem: www.github.com/filnap/RODNaliczenia")
 
 config = "config.txt"
 parser = configparser.ConfigParser()
