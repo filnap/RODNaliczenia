@@ -1,0 +1,17 @@
+1. Program nale¿y uruchamiaæ na serwerze
+2. Nale¿y sprawdziæ dane zamieszczone w pliku "config.txt" aby upewniæ siê, ¿e s¹ takie same jak na serwerze (adres bazy, nazwa u¿ytkownika, has³o s¹ wpisane takie, jakie tworzone s¹ domyœlnie przez program DGCS)
+3. Nale¿y uruchomiæ program (RODNaliczeniaVX.X.exe)
+4. Program na pocz¹tku niczego nie wyœwietla, nie jest to b³¹d, jest to zaczytywanie danych do pamiêci
+5. Je¿eli program szybko siê zamyka, oznacza to, ¿e plik "config.txt" nie zosta³ prawid³owo zmodyfikowany, lub program napotka³ nieoczekiwany b³¹d (proszê wtedy o kontakt)
+6. Je¿eli program coœ wyœwietla, nale¿y upewniæ siê, ze plik "dane.txt" jest pusty, poniewa¿ nie jest on kasowany przy starcie programu
+7. Po wpisaniu "t" lub "T" program powinien zacz¹æ obliczenia, po zakoñczeniu sam siê zamkn¹æ
+8. Powstaje plik "dane.txt" ma on nastêpuj¹c¹ budowê:
+	a. pierwsza kolumna to numer dzia³ki
+	b. kolejne kolumny to kolejne typy naliczeñ
+	c. trzecia od koñca kolumna to suma naliczeñ
+	d. druga od koñca kolumna to suma wp³at
+	e. pierwsza od koñca kolumna to saldo (liczba ujemna oznacza nadp³atê)
+To jakie ID naliczenia odpowiada jakiemu naliczeniu nale¿y wyznaczyæ eksperymentalnie, gdy¿ ka¿dy Ogród dodane swoje naliczenia w innej kolejnoœci.
+9. Plik Bugs.txt zawiera informacje o znanych b³êdach programu, oraz tym co je wywo³uje.
+
+KONIEC INSTRUKCJI

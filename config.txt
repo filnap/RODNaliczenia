@@ -1,0 +1,5 @@
+[BASIC]
+filepath = dane.txt
+database = C:/dGCS/DGCSPZDSystem/db/DB
+user = sysdba
+password = masterkey

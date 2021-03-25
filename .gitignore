@@ -1,0 +1,7 @@
+/dist/
+/build/
+/venv/
+/pyinstaller.exe
+/RODNaliczeniaV2.4.exe
+/RODNaliczeniaV2.3.exe
+/RODNaliczenia.spec

@@ -1,0 +1,3 @@
+Znane błędy:
+1. Jeżeli na Ogrodzie jest więcej pozycji naliczeń niż program przewiduje to pozycje mogą być zapisywane w 3 ostatnich polach (należności, wpłaty, saldo)
+2. Jeżeli ktoś sprzedał działkę a następnie ją kupił to program dopisze jego wpłaty do obu działek (należności są prawidłowe, wpłaty nie)
