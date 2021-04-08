@@ -2,9 +2,9 @@ import fdb
 import time
 import configparser
 
-print("Generator raportu opłat i nadpłat działkowców ROD. Wersja 2.5")
+print("Generator raportu opłat i nadpłat działkowców ROD. Wersja 2.6")
 print("Copyright (C) 2021 Filip Napierała i Marianna Humska")
-print("Data kompilacji 25.03.2021")
+print("Data kompilacji 08.04.2021")
 print("--------------------------------------------------------------------------------------------------------")
 print("Niniejszy program jest wolnym oprogramowaniem - możesz go rozpowszechniać dalej i/lub modyfikować na warunkach Powszechnej Licencji Publicznej GNU")
 print("wydanej przez Fundację Wolnego Oprogramowania, według wersji 3 tej Licencji lub dowolnej z późniejszych wersji.")
@@ -36,11 +36,12 @@ cur.execute("SELECT NUMERDZIALKI FROM \"@PZD_DZIALKI\" ")
 listadzialek = cur.fetchall()
 # Creating list in file
 L = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-print("Długość listy to: "+ str(len(L)) + " (Pierwszy indeks to zero)")
+print("Długość listy (maksymalna liczba ID naliczeń) to: "+ str(len(L)) + " (Pierwszy indeks to zero)")
 potwierdzenie = input("Liczba wszystkich działek to:" + str(len(listadzialek)) + " Prawidłowo? [T/n]")
 if potwierdzenie == "T" or potwierdzenie == "t":
 
     for h in range(len(listadzialek)):
+        L = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         nrdzlist = listadzialek[h]
         nrdz = nrdzlist[0]
         print("Obsługuję działkę nr: " + nrdz)
