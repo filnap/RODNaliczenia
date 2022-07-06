@@ -1,5 +1,6 @@
 [BASIC]
 debug = 0
+idinne = 22
 filepath = dane.txt
 database = C:/dGCS/DGCSPZDSystem/db/DB
 user = sysdba

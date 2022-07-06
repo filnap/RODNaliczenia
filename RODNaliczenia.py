@@ -28,31 +28,33 @@ database = parser['BASIC']['database']
 user = parser['BASIC']['user']
 password = parser['BASIC']['password']
 debug = parser['BASIC']['debug']
-debug_mode =int(debug)
+IDinne = parser['BASIC']['idinne'] #ID of accural to which all unknown accurals will be added
+debug_mode = int(debug)
 
 print("Zapis do pliku '%s'. Upewnij się, że jest pusty!" % filepath)
 
 con = fdb.connect(database=database, user=user, password=password)
 cur = con.cursor()
-# Main loop
-print("Wszystkie dane wpisane prawidłowo")
 
+cur.execute("SELECT NAZWAOPLATY FROM \"@PZD_SLOOPLATY\" WHERE IDSLOOPLATY='%s' " % IDinne)
+IDinneN = cur.fetchall()
+print("Wszystkie dane wpisane prawidłowo")
+print("Naliczenia które będą miały ID \"NONE\" zostaną dodane do ID nr: " + str(IDinne) + " (" + str(IDinneN[0][0]) + ")")
 cur.execute("SELECT NUMERDZIALKI FROM \"@PZD_DZIALKI\" ")
 listadzialek = cur.fetchall()
 # Creating list in file
 L = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-print("Długość listy (maksymalna liczba ID naliczeń) to: "+ str(len(L)-3) + " (Pierwszy indeks to zero)")
+print("Długość listy (maksymalna liczba ID naliczeń) to: " + str(len(L) - 3) + " (Pierwszy indeks to zero)")
 if debug_mode == 1:
     print("TRYB DEBUGOWANIA AKTYWNY")
 potwierdzenie = input("Liczba wszystkich działek to:" + str(len(listadzialek)) + " Prawidłowo? [T/n]")
 if potwierdzenie == "T" or potwierdzenie == "t":
 
+    # Main loop
     for h in range(len(listadzialek)):
         L = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         nrdz = listadzialek[h][0]
         print("Obsługuję działkę nr: " + nrdz)
-
-        # TODO: Interface!!
 
         cur.execute("SELECT IDDZIALKI FROM \"@PZD_DZIALKI\" WHERE NUMERDZIALKI='%s' " % nrdz)
         iddzialkilist = cur.fetchall()
@@ -61,10 +63,9 @@ if potwierdzenie == "T" or potwierdzenie == "t":
             print("id dzialki:")
             print(iddzialki)
 
-        f = open(filepath, "a")
-
         L[0] = nrdz
 
+        # list all ID of accurals for selected plot
         cur.execute("SELECT IDNALICZENIA FROM \"@PZD_NALICZENIA\" WHERE IDDZIALKI='%s'" % iddzialki)
         idnaliczenia = cur.fetchall()
 
@@ -75,56 +76,56 @@ if potwierdzenie == "T" or potwierdzenie == "t":
         KwotaOplat = 0
 
         for i in range(len(idnaliczenia)):
-
+            # select one accural
             jednoidnal = idnaliczenia[i][0]
-
-            cur.execute("SELECT KWOTA FROM \"@PZD_NALICZENIAPOZ\" WHERE IDNALICZENIA='%s'" % jednoidnal)
-            kwotalista = cur.fetchall()
-
-            # accrual calculation stops here !!!
-
-            # --------------------------------------------------------------------
 
             # checking accrual category
             cur.execute("SELECT IDSLOOPLATY FROM \"@PZD_NALICZENIAPOZ\" WHERE IDNALICZENIA='%s'" % jednoidnal)
             idsioplaty = cur.fetchall()
-            # print("IDOPLATY:")
-            # print(idsioplaty)
 
             # left to pay check
             cur.execute("SELECT IDZOBOWIAZANIAKONTR FROM \"@PZD_NALICZENIAPOZ\" WHERE IDNALICZENIA='%s'" % jednoidnal)
             IDZOBOWIAZANIAKONTR = cur.fetchall()
 
-            # Weird section
+            # select one accural and check what is left to pay in POZOSTALA_ZALEGLOSC column
             for a in range(len(IDZOBOWIAZANIAKONTR)):
-                idzobdrug= IDZOBOWIAZANIAKONTR[a][0]
+                idzobdrug = IDZOBOWIAZANIAKONTR[a][0]
 
                 if debug_mode == 1:
                     print("idzobowikontr")
                     print(idzobdrug)
 
-                cur.execute(
-                    "SELECT POZOSTALA_ZALEGLOSC FROM \"@ZAPL_ZOBOWIAZANIAKONTR\" WHERE IDZOBOWIAZANIAKONTR='%s'" % (
-                        idzobdrug))
+                cur.execute("SELECT POZOSTALA_ZALEGLOSC FROM \"@ZAPL_ZOBOWIAZANIAKONTR\" WHERE IDZOBOWIAZANIAKONTR='%s'" % (idzobdrug))
                 pozostalo = cur.fetchall()
 
+                # sum left to pay until there is nothing more
                 for l in range(len(pozostalo)):
                     pozostalodwa = pozostalo[l][0]
 
                     if pozostalodwa != 0:
                         indekss = idsioplaty[a][0]
 
+                        # add ID none to selected ID
                         if str(indekss) == "None":
-                            indekss = 38
+                            indekss = IDinne
+
+                        # prepair to write it in list (one line in txt file), sum up in list L. "indekss" is column number in created list.
+
 
                         opnalist = L[int(indekss)]
-                        L[indekss] = opnalist + pozostalodwa
+                        if debug_mode == 1:
+                            print("indekss: " + str(indekss))
+                            print("opnalist: " + str(opnalist))
+                            print("pozostalodwa: " + str(pozostalodwa))
+                        L[int(indekss)] = opnalist + pozostalodwa
                     l = l + 1
                 a = a + 1
 
-                # done
                 # --------------------------------------------------------------------------------------------------
-                # returning to accrual calculation
+            # old section of code. Only generates sum of accurals
+            cur.execute("SELECT KWOTA FROM \"@PZD_NALICZENIAPOZ\" WHERE IDNALICZENIA='%s'" % jednoidnal)
+            kwotalista = cur.fetchall()
+
             for j in range(len(kwotalista)):
                 kwota = kwotalista[j][0]
 
@@ -138,16 +139,17 @@ if potwierdzenie == "T" or potwierdzenie == "t":
         cur.execute("SELECT IDSIKONTRWLA FROM \"@PZD_RELDZIALKISIKONTR\" WHERE IDDZIALKI='%s' ORDER BY 'DATAOD' " % iddzialki)
         idsikontrwlarawWLAS = cur.fetchall()
         # Getting owner's e-mail adress
-        idaktualnego=idsikontrwlarawWLAS[len(idsikontrwlarawWLAS)-1][0]
+        idaktualnego = idsikontrwlarawWLAS[len(idsikontrwlarawWLAS) - 1][0]
         if debug_mode == 1:
             print("IDsikontrwlaRAWWLAS")
             print(idsikontrwlarawWLAS)
             print("IDaktualnego")
             print(idaktualnego)
 
+        # email
         cur.execute("SELECT EMAIL FROM SIKONTR WHERE IDSIKONTR='%s'" % idaktualnego)
         emailraw = cur.fetchall()
-        email=emailraw[0][0]
+        email = emailraw[0][0]
         if debug_mode == 1:
             print("email:")
             print(email)
@@ -160,7 +162,7 @@ if potwierdzenie == "T" or potwierdzenie == "t":
         idsikontrwlarawWLAS.extend(idsikontrwlarawMALZ)
         idsikontrwlaraw = idsikontrwlarawWLAS
 
-        # To remove duplicates
+        # Try to remove duplicates
         idsikontrwla = list(dict.fromkeys(idsikontrwlaraw))
         if debug_mode == 1:
             print("idsikontrwlaraw")
@@ -174,25 +176,28 @@ if potwierdzenie == "T" or potwierdzenie == "t":
 
             if idsikontrwlaDwa is not None:
                 if debug_mode == 1:
-                    print("ID kontrachenta: " + str(idsikontrwlaDwa))
+                    print("ID kontrahenta: " + str(idsikontrwlaDwa))
+
                 cur.execute("SELECT INDEKSKONTR FROM \"SIKONTR\" WHERE IDSIKONTR='%s'" % idsikontrwlaDwa)
                 indekskontr = cur.fetchall()
-                indekskontr = indekskontr[0]
-                indekskontr = indekskontr[0]
+                indekskontr = indekskontr[0][0]
+
                 if debug_mode == 1:
+                    print("Indeks kontrahenta: ")
                     print(indekskontr)
+
                 # KP and KW
                 cur.execute("SELECT KWOTA FROM \"DOKUMENTYKASOWE\" WHERE INDEKSKONTR ='%s'" % indekskontr)
                 ZbiorczeOplaty = cur.fetchall()
-                #print(ZbiorczeOplaty)
+                # print(ZbiorczeOplaty)
 
                 k = 0
                 for k in range(len(ZbiorczeOplaty)):
-                    OplataJeden = ZbiorczeOplaty[k]
-                    KwotaOplatyJeden = OplataJeden[0]
+                    KwotaOplatyJeden = ZbiorczeOplaty[k][0]
                     KwotaOplat = KwotaOplat + KwotaOplatyJeden
                     k = k + 1
-                #print("Kwota opłat: " + str(KwotaOplat))
+                # print("Kwota opłat: " + str(KwotaOplat))
+
                 # Bank statements
                 cur.execute("SELECT KWOTA FROM \"@WYCIAGI_WYC_POZ\" WHERE INDEKSKONTR ='%s'" % indekskontr)
                 Wyciagi = cur.fetchall()
@@ -200,7 +205,7 @@ if potwierdzenie == "T" or potwierdzenie == "t":
                 m = 0
                 for m in range(len(Wyciagi)):
                     KwotaOplatyJeden = Wyciagi[m][0]
-                    #print("Kwota z wyciągu:" + str(KwotaOplatyJeden))
+                    # print("Kwota z wyciągu:" + str(KwotaOplatyJeden))
                     KwotaOplat = KwotaOplat + KwotaOplatyJeden
                     m = m + 1
 
@@ -212,6 +217,7 @@ if potwierdzenie == "T" or potwierdzenie == "t":
         if email != None:
             L[44] = email
 
+        f = open(filepath, "a")
         f.write("\n")
         for g in range(len(L)):
             f.write(str(L[g]))
