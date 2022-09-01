@@ -1,8 +1,11 @@
+import os
 import fdb
 import time
 import configparser
+import xml.etree.ElementTree as ET
+from datetime import datetime
 
-print("Generator raportu opłat i nadpłat działkowców ROD. Wersja 2.8")
+print("Generator raportu opłat i nadpłat działkowców ROD. Wersja 3.0")
 print("Copyright (C) 2021 Filip Napierała i Marianna Humska")
 print("Data kompilacji 05.07.2022r.")
 print("--------------------------------------------------------------------------------------------------------")
@@ -28,13 +31,26 @@ database = parser['BASIC']['database']
 user = parser['BASIC']['user']
 password = parser['BASIC']['password']
 debug = parser['BASIC']['debug']
-IDinne = parser['BASIC']['idinne'] #ID of accural to which all unknown accurals will be added
+IDinne = parser['BASIC']['idinne']  # ID of accural to which all unknown accurals will be added
 debug_mode = int(debug)
+xml_doc = ET.Element('root')
 
-print("Zapis do pliku '%s'. Upewnij się, że jest pusty!" % filepath)
+print("Zapis do pliku '%s'." % filepath)
+try:
+    os.remove(filepath)
+    print("Utworzono nowy plik w miejsce poprzedniego.")
+except:
+    print("Brak pliku, tworzę nowy.")
 
-con = fdb.connect(database=database, user=user, password=password)
+con = fdb.connect(database=database, user=user, password=password, charset='utf8')
 cur = con.cursor()
+cur.execute("SELECT DATA FROM \"@WYCIAGI_WYCIAG\" ORDER BY IDWYCIAG DESC ")
+data_wyciagu = cur.fetchall()[0][0]
+
+print("Najnowszy wyciąg z dnia: " + str(data_wyciagu))
+
+now = datetime.now()
+xml_doc = ET.Element('dzialki', data_teraz=str(now), data_wyciagu=str(data_wyciagu))
 
 cur.execute("SELECT NAZWAOPLATY FROM \"@PZD_SLOOPLATY\" WHERE IDSLOOPLATY='%s' " % IDinne)
 IDinneN = cur.fetchall()
@@ -56,6 +72,9 @@ if potwierdzenie == "T" or potwierdzenie == "t":
         nrdz = listadzialek[h][0]
         print("Obsługuję działkę nr: " + nrdz)
 
+        # getting data about owner to put in XML file
+        dzialka = ET.SubElement(xml_doc, 'dzialka', nrdz=str(nrdz))
+
         cur.execute("SELECT IDDZIALKI FROM \"@PZD_DZIALKI\" WHERE NUMERDZIALKI='%s' " % nrdz)
         iddzialkilist = cur.fetchall()
         iddzialki = iddzialkilist[0][0]
@@ -63,8 +82,32 @@ if potwierdzenie == "T" or potwierdzenie == "t":
             print("id dzialki:")
             print(iddzialki)
 
+        # Area
         L[0] = nrdz
+        cur.execute("SELECT POWIERZCHNIA FROM \"@PZD_DZIALKI\" WHERE IDDZIALKI='%s'" % iddzialki)
+        powierzchnia = cur.fetchall()[0][0] * 10000
+        ET.SubElement(dzialka, 'ParametryDzialki', Powierzchnia=str(powierzchnia))
 
+        # Electric energy meter
+        print("IDdzialki")
+        print(iddzialki)
+        try:
+            cur.execute("SELECT IDLICZNIK FROM \"@PZD_RELLICZNIKDZIALKI\" WHERE IDDZIALKI='%s'" % iddzialki)
+            idlicznik = cur.fetchall()[0][0]
+
+            cur.execute("SELECT STANLICZNIKA, DATAODCZYTU FROM \"@PZD_LICZNIKODCZYT\" WHERE IDLICZNIK='%s'" % idlicznik)
+            odczyty_licznika = cur.fetchall()
+            print(odczyty_licznika)
+            for l in range(len(odczyty_licznika)):
+                print("l")
+                print(l)
+                stan_licznika = odczyty_licznika[l][0]
+                print(stan_licznika)
+                data_odczytu_EE = odczyty_licznika[l][1]
+                print(data_odczytu_EE)
+                ET.SubElement(dzialka, 'Licznik', StanLicznika=str(stan_licznika), DataOdczytu=str(data_odczytu_EE))
+        except:
+            print("Brak kolejnych odczytów lub licznika")
         # list all ID of accurals for selected plot
         cur.execute("SELECT IDNALICZENIA FROM \"@PZD_NALICZENIA\" WHERE IDDZIALKI='%s'" % iddzialki)
         idnaliczenia = cur.fetchall()
@@ -111,6 +154,10 @@ if potwierdzenie == "T" or potwierdzenie == "t":
 
                         # prepair to write it in list (one line in txt file), sum up in list L. "indekss" is column number in created list.
 
+                        cur.execute("SELECT NAZWAOPLATY FROM \"@PZD_SLOOPLATY\" WHERE IDSLOOPLATY='%s'" % (indekss))
+                        nazwaoplaty = cur.fetchall()[0][0]
+
+                        ET.SubElement(dzialka, 'NaliczeniePozostalo', pozostalodwa=str(pozostalodwa), nazwaoplaty=str(nazwaoplaty))
 
                         opnalist = L[int(indekss)]
                         if debug_mode == 1:
@@ -147,9 +194,18 @@ if potwierdzenie == "T" or potwierdzenie == "t":
             print(idaktualnego)
 
         # email
+        cur.execute("SELECT NAZWAKONTR FROM SIKONTR WHERE IDSIKONTR='%s'" % idaktualnego)
+        nazwakontr = cur.fetchall()[0][0]
+        cur.execute("SELECT TELEFON FROM SIKONTR WHERE IDSIKONTR='%s'" % idaktualnego)
+        telefon = cur.fetchall()[0][0]
+        if telefon == None:
+            telefon = "N/D"
         cur.execute("SELECT EMAIL FROM SIKONTR WHERE IDSIKONTR='%s'" % idaktualnego)
-        emailraw = cur.fetchall()
-        email = emailraw[0][0]
+        email = cur.fetchall()[0][0]
+        if email == None:
+            email = "N/D"
+
+        ET.SubElement(dzialka, 'DaneDzialkowiec1', nazwakontr=str(nazwakontr), telefon=str(telefon), email=str(email))
         if debug_mode == 1:
             print("email:")
             print(email)
@@ -157,6 +213,26 @@ if potwierdzenie == "T" or potwierdzenie == "t":
         # Finding ID for co-owners
         cur.execute("SELECT IDSIKONTRMALZ FROM \"@PZD_RELDZIALKISIKONTR\" WHERE IDDZIALKI='%s'" % iddzialki)
         idsikontrwlarawMALZ = cur.fetchall()
+
+        print(idsikontrwlarawMALZ[0][0])
+        if idsikontrwlarawMALZ[0][0] != None:
+            cur.execute("SELECT NAZWAKONTR FROM SIKONTR WHERE IDSIKONTR='%s'" % idsikontrwlarawMALZ[0][0])
+            nazwakontr = cur.fetchall()[0][0]
+            cur.execute("SELECT TELEFON FROM SIKONTR WHERE IDSIKONTR='%s'" % idsikontrwlarawMALZ[0][0])
+            telefon = cur.fetchall()[0][0]
+            if telefon == None:
+                telefon = "N/D"
+            cur.execute("SELECT EMAIL FROM SIKONTR WHERE IDSIKONTR='%s'" % idsikontrwlarawMALZ[0][0])
+            email = cur.fetchall()[0][0]
+            if email == None:
+                email = "N/D"
+        else:
+            print("Brak współmałżonka")
+            nazwakontr = "N/D"
+            telefon = "N/D"
+            email = "N/D"
+
+        ET.SubElement(dzialka, 'DaneDzialkowiec2', nazwakontr=nazwakontr, telefon=telefon, email=email)
 
         # Joining owners and co-owners ID lists together
         idsikontrwlarawWLAS.extend(idsikontrwlarawMALZ)
@@ -226,6 +302,29 @@ if potwierdzenie == "T" or potwierdzenie == "t":
         f.close()
         h = h + 1
         print("Wiersz zapisano")
+
+
+    # generating XML file
+    # https://stackoverflow.com/questions/749796/pretty-printing-xml-in-python/38573964#38573964
+    def prettify(element, indent='  '):
+        queue = [(0, element)]  # (level, element)
+        while queue:
+            level, element = queue.pop(0)
+            children = [(level + 1, child) for child in list(element)]
+            if children:
+                element.text = '\n' + indent * (level + 1)  # for child open
+            if queue:
+                element.tail = '\n' + indent * queue[0][0]  # for sibling open
+            else:
+                element.tail = '\n' + indent * (level - 1)  # for parent close
+            queue[0:0] = children  # prepend so children come before siblings
+
+
+    prettify(xml_doc)
+
+    tree = ET.ElementTree(xml_doc)
+    tree.write('sample.xml', encoding='UTF-8', xml_declaration=True)
+
     print("Program zakończył pracę sukcesem. Wyłączam za 3 sekundy")
     time.sleep(3)
 else:
