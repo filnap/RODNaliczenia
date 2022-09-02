@@ -97,14 +97,14 @@ if potwierdzenie == "T" or potwierdzenie == "t":
 
             cur.execute("SELECT STANLICZNIKA, DATAODCZYTU FROM \"@PZD_LICZNIKODCZYT\" WHERE IDLICZNIK='%s'" % idlicznik)
             odczyty_licznika = cur.fetchall()
-            print(odczyty_licznika)
+            #print(odczyty_licznika)
             for l in range(len(odczyty_licznika)):
-                print("l")
-                print(l)
+                #print("l")
+                #print(l)
                 stan_licznika = odczyty_licznika[l][0]
-                print(stan_licznika)
+                #print(stan_licznika)
                 data_odczytu_EE = odczyty_licznika[l][1]
-                print(data_odczytu_EE)
+                #print(data_odczytu_EE)
                 ET.SubElement(dzialka, 'Licznik', StanLicznika=str(stan_licznika), DataOdczytu=str(data_odczytu_EE))
         except:
             print("Brak kolejnych odczytów lub licznika")
@@ -211,18 +211,18 @@ if potwierdzenie == "T" or potwierdzenie == "t":
             print(email)
 
         # Finding ID for co-owners
-        cur.execute("SELECT IDSIKONTRMALZ FROM \"@PZD_RELDZIALKISIKONTR\" WHERE IDDZIALKI='%s'" % iddzialki)
-        idsikontrwlarawMALZ = cur.fetchall()
+        cur.execute("SELECT IDSIKONTRMALZ FROM \"@PZD_RELDZIALKISIKONTR\" WHERE IDSIKONTRWLA='%s'" % idaktualnego)
+        idaktualnegoMALZ = cur.fetchall()[0][0]
 
-        print(idsikontrwlarawMALZ[0][0])
-        if idsikontrwlarawMALZ[0][0] != None:
-            cur.execute("SELECT NAZWAKONTR FROM SIKONTR WHERE IDSIKONTR='%s'" % idsikontrwlarawMALZ[0][0])
+        print(idaktualnegoMALZ)
+        if idaktualnegoMALZ != None:
+            cur.execute("SELECT NAZWAKONTR FROM SIKONTR WHERE IDSIKONTR='%s'" % idaktualnegoMALZ)
             nazwakontr = cur.fetchall()[0][0]
-            cur.execute("SELECT TELEFON FROM SIKONTR WHERE IDSIKONTR='%s'" % idsikontrwlarawMALZ[0][0])
+            cur.execute("SELECT TELEFON FROM SIKONTR WHERE IDSIKONTR='%s'" % idaktualnegoMALZ)
             telefon = cur.fetchall()[0][0]
             if telefon == None:
                 telefon = "N/D"
-            cur.execute("SELECT EMAIL FROM SIKONTR WHERE IDSIKONTR='%s'" % idsikontrwlarawMALZ[0][0])
+            cur.execute("SELECT EMAIL FROM SIKONTR WHERE IDSIKONTR='%s'" % idaktualnegoMALZ)
             email = cur.fetchall()[0][0]
             if email == None:
                 email = "N/D"
@@ -234,7 +234,12 @@ if potwierdzenie == "T" or potwierdzenie == "t":
 
         ET.SubElement(dzialka, 'DaneDzialkowiec2', nazwakontr=nazwakontr, telefon=telefon, email=email)
 
+
+
+
         # Joining owners and co-owners ID lists together
+        cur.execute("SELECT IDSIKONTRMALZ FROM \"@PZD_RELDZIALKISIKONTR\" WHERE IDDZIALKI='%s'" % iddzialki)
+        idsikontrwlarawMALZ = cur.fetchall()
         idsikontrwlarawWLAS.extend(idsikontrwlarawMALZ)
         idsikontrwlaraw = idsikontrwlarawWLAS
 
