@@ -4,10 +4,12 @@ import time
 import configparser
 import xml.etree.ElementTree as ET
 from datetime import datetime
+import ftplib
+import sys
 
-print("Generator raportu opłat i nadpłat działkowców ROD. Wersja 3.0")
+print("Generator raportu opłat i nadpłat działkowców ROD. Wersja 3.1")
 print("Copyright (C) 2021 Filip Napierała i Marianna Humska")
-print("Data kompilacji 05.07.2022r.")
+print("Data aktualizacji: 05.09.2022r.")
 print("--------------------------------------------------------------------------------------------------------")
 print("Niniejszy program jest wolnym oprogramowaniem - możesz go rozpowszechniać dalej i/lub modyfikować ")
 print("na warunkach Powszechnej Licencji Publicznej GNU")
@@ -26,6 +28,8 @@ config = "config.txt"
 parser = configparser.ConfigParser()
 parser.read('config.txt')
 
+# BASIC
+auto = parser['BASIC']['auto']
 filepath = parser['BASIC']['filepath']
 database = parser['BASIC']['database']
 user = parser['BASIC']['user']
@@ -33,6 +37,15 @@ password = parser['BASIC']['password']
 debug = parser['BASIC']['debug']
 IDinne = parser['BASIC']['idinne']  # ID of accural to which all unknown accurals will be added
 debug_mode = int(debug)
+
+# FTP
+ftp_enable = parser['FTP']['ftp_enable']
+servername = parser['FTP']['servername']
+username = parser['FTP']['username']
+password_ftp = parser['FTP']['password']
+filepatch = parser['FTP']['filepatch']
+data_refresh_url = parser['FTP']['data_refresh_url']
+
 xml_doc = ET.Element('root')
 
 print("Zapis do pliku '%s'." % filepath)
@@ -49,6 +62,10 @@ data_wyciagu = cur.fetchall()[0][0]
 
 print("Najnowszy wyciąg z dnia: " + str(data_wyciagu))
 
+# progress bar
+print_bar = 0
+toolbar_width = 20
+
 now = datetime.now()
 xml_doc = ET.Element('dzialki', data_teraz=str(now), data_wyciagu=str(data_wyciagu))
 
@@ -61,16 +78,56 @@ listadzialek = cur.fetchall()
 # Creating list in file
 L = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 print("Długość listy (maksymalna liczba ID naliczeń) to: " + str(len(L) - 3) + " (Pierwszy indeks to zero)")
+print(auto)
 if debug_mode == 1:
     print("TRYB DEBUGOWANIA AKTYWNY")
-potwierdzenie = input("Liczba wszystkich działek to:" + str(len(listadzialek)) + " Prawidłowo? [T/n]")
+if auto == "1":
+    print("Program działa w trybie automatycznym")
+    potwierdzenie = "T"
+else:
+    potwierdzenie = input("Liczba wszystkich działek to:" + str(len(listadzialek)) + " Prawidłowo? [T/n]")
 if potwierdzenie == "T" or potwierdzenie == "t":
+    print("")
+    print("")
+    print("")
+    print("⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀PROSZĘ CZEKAC    ⠀")
+    print("⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⡀⠀⠀⠀")
+    print("⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣾⠙⠻⢶⣄⡀⠀⠀⠀⢀⣤⠶⠛⠛⡇⠀⠀⠀")
+    print("⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢹⣇⠀⠀⣙⣿⣦⣤⣴⣿⣁⠀⠀⣸⠇⠀⠀⠀")
+    print("⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⣡⣾⣿⣿⣿⣿⣿⣿⣿⣷⣌⠋⠀⠀⠀⠀")
+    print("⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣴⣿⣷⣄⡈⢻⣿⡟⢁⣠⣾⣿⣦⠀⠀⠀⠀")
+    print("⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢹⣿⣿⣿⣿⠘⣿⠃⣿⣿⣿⣿⡏⠀⠀⠀⠀")
+    print("⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⠀⠈⠛⣰⠿⣆⠛⠁⠀⡀⠀⠀⠀⠀⠀")
+    print("⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣼⣿⣦⠀⠘⠛⠋⠀⣴⣿⠁⠀⠀⠀⠀⠀")
+    print("⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣤⣶⣾⣿⣿⣿⣿⡇⠀⠀⠀⢸⣿⣏⠀⠀⠀⠀⠀⠀")
+    print("⠀⠀⠀⠀⠀⠀⣠⣶⣿⣿⣿⣿⣿⣿⣿⣿⠿⠿⠀⠀⠀⠾⢿⣿⠀⠀⠀⠀⠀⠀")
+    print("⠀⠀⠀⠀⣠⣿⣿⣿⣿⣿⣿⡿⠟⠋⣁⣠⣤⣤⡶⠶⠶⣤⣄⠈⠀⠀⠀⠀⠀⠀")
+    print("⠀⠀⠀⢰⣿⣿⣮⣉⣉⣉⣤⣴⣶⣿⣿⣋⡥⠄⠀⠀⠀⠀⠉⢻⣄⠀⠀⠀⠀⠀")
+    print("⠀⠀⠀⠸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣟⣋⣁⣤⣀⣀⣤⣤⣤⣤⣄⣿⡄⠀⠀⠀⠀")
+    print("⠀⠀⠀⠀⠙⠿⣿⣿⣿⣿⣿⣿⣿⡿⠿⠛⠋⠉⠁⠀⠀⠀⠀⠈⠛⠃⠀⠀⠀⠀")
+    print("⠀⠀⠀⠀⠀⠀⠀⠉⠉⠉⠉⠉⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀")
+    print("⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀PLIK JEST GENEROWANY    ⠀")
+    if debug_mode != 1:
+        # setup progressbar
+        # https://stackoverflow.com/questions/3160699/python-progress-bar
 
+        sys.stdout.write("[%s]" % (" " * toolbar_width))
+        sys.stdout.flush()
+        sys.stdout.write("\b" * (toolbar_width + 1))  # return to start of line, after '['
     # Main loop
     for h in range(len(listadzialek)):
         L = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         nrdz = listadzialek[h][0]
-        print("Obsługuję działkę nr: " + nrdz)
+        print_bar = print_bar + 1
+
+        # Progress bar update:
+        if print_bar == 20:
+            sys.stdout.write("-")
+            sys.stdout.flush()
+            print_bar = 0
+
+        if debug_mode == 1:
+            print("Obsługuję działkę nr: " + nrdz)
 
         # getting data about owner to put in XML file
         dzialka = ET.SubElement(xml_doc, 'dzialka', nrdz=str(nrdz))
@@ -89,25 +146,27 @@ if potwierdzenie == "T" or potwierdzenie == "t":
         ET.SubElement(dzialka, 'ParametryDzialki', Powierzchnia=str(powierzchnia))
 
         # Electric energy meter
-        print("IDdzialki")
-        print(iddzialki)
+        if debug_mode == 1:
+            print("IDdzialki")
+            print(iddzialki)
         try:
             cur.execute("SELECT IDLICZNIK FROM \"@PZD_RELLICZNIKDZIALKI\" WHERE IDDZIALKI='%s'" % iddzialki)
             idlicznik = cur.fetchall()[0][0]
 
             cur.execute("SELECT STANLICZNIKA, DATAODCZYTU FROM \"@PZD_LICZNIKODCZYT\" WHERE IDLICZNIK='%s'" % idlicznik)
             odczyty_licznika = cur.fetchall()
-            #print(odczyty_licznika)
+            # print(odczyty_licznika)
             for l in range(len(odczyty_licznika)):
-                #print("l")
-                #print(l)
+                # print("l")
+                # print(l)
                 stan_licznika = odczyty_licznika[l][0]
-                #print(stan_licznika)
+                # print(stan_licznika)
                 data_odczytu_EE = odczyty_licznika[l][1]
-                #print(data_odczytu_EE)
+                # print(data_odczytu_EE)
                 ET.SubElement(dzialka, 'Licznik', StanLicznika=str(stan_licznika), DataOdczytu=str(data_odczytu_EE))
         except:
-            print("Brak kolejnych odczytów lub licznika")
+            if debug_mode == 1:
+                print("Brak kolejnych odczytów lub licznika")
         # list all ID of accurals for selected plot
         cur.execute("SELECT IDNALICZENIA FROM \"@PZD_NALICZENIA\" WHERE IDDZIALKI='%s'" % iddzialki)
         idnaliczenia = cur.fetchall()
@@ -214,7 +273,6 @@ if potwierdzenie == "T" or potwierdzenie == "t":
         cur.execute("SELECT IDSIKONTRMALZ FROM \"@PZD_RELDZIALKISIKONTR\" WHERE IDSIKONTRWLA='%s'" % idaktualnego)
         idaktualnegoMALZ = cur.fetchall()[0][0]
 
-        print(idaktualnegoMALZ)
         if idaktualnegoMALZ != None:
             cur.execute("SELECT NAZWAKONTR FROM SIKONTR WHERE IDSIKONTR='%s'" % idaktualnegoMALZ)
             nazwakontr = cur.fetchall()[0][0]
@@ -227,15 +285,13 @@ if potwierdzenie == "T" or potwierdzenie == "t":
             if email == None:
                 email = "N/D"
         else:
-            print("Brak współmałżonka")
+            if debug_mode == 1:
+                print("Brak współmałżonka")
             nazwakontr = "N/D"
             telefon = "N/D"
             email = "N/D"
 
         ET.SubElement(dzialka, 'DaneDzialkowiec2', nazwakontr=nazwakontr, telefon=telefon, email=email)
-
-
-
 
         # Joining owners and co-owners ID lists together
         cur.execute("SELECT IDSIKONTRMALZ FROM \"@PZD_RELDZIALKISIKONTR\" WHERE IDDZIALKI='%s'" % iddzialki)
@@ -291,7 +347,8 @@ if potwierdzenie == "T" or potwierdzenie == "t":
                     m = m + 1
 
         Saldo = kwotanaliczen - KwotaOplat
-        print("Saldo:" + str(Saldo))
+        if debug_mode == 1:
+            print("Saldo:" + str(Saldo))
         L[41] = kwotanaliczen
         L[42] = KwotaOplat
         L[43] = Saldo
@@ -306,7 +363,6 @@ if potwierdzenie == "T" or potwierdzenie == "t":
             g = g + 1
         f.close()
         h = h + 1
-        print("Wiersz zapisano")
 
 
     # generating XML file
@@ -330,6 +386,19 @@ if potwierdzenie == "T" or potwierdzenie == "t":
     tree = ET.ElementTree(xml_doc)
     tree.write('sample.xml', encoding='UTF-8', xml_declaration=True)
 
+    sys.stdout.write("]\n")  # this ends the progress bar
+
+    # Send via FTP
+    if ftp_enable == "1":
+        print("")
+        print("Wysyłam przez FTP!")
+
+        session = ftplib.FTP_TLS(servername, username, password_ftp)
+        file = open('sample.xml', 'rb')  # file to send
+        session.storbinary(filepatch, file)  # send the file
+        file.close()  # close file and FTP
+        session.quit()
+        print("Przesłano")
     print("Program zakończył pracę sukcesem. Wyłączam za 3 sekundy")
     time.sleep(3)
 else:
