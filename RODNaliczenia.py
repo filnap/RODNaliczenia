@@ -6,6 +6,8 @@ import xml.etree.ElementTree as ET
 from datetime import datetime
 import ftplib
 import sys
+import webbrowser
+
 
 print("Generator raportu opłat i nadpłat działkowców ROD. Wersja 3.1")
 print("Copyright (C) 2021 Filip Napierała i Marianna Humska")
@@ -78,7 +80,7 @@ listadzialek = cur.fetchall()
 # Creating list in file
 L = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 print("Długość listy (maksymalna liczba ID naliczeń) to: " + str(len(L) - 3) + " (Pierwszy indeks to zero)")
-print(auto)
+
 if debug_mode == 1:
     print("TRYB DEBUGOWANIA AKTYWNY")
 if auto == "1":
@@ -263,6 +265,7 @@ if potwierdzenie == "T" or potwierdzenie == "t":
         email = cur.fetchall()[0][0]
         if email == None:
             email = "N/D"
+        L[44] = email
 
         ET.SubElement(dzialka, 'DaneDzialkowiec1', nazwakontr=str(nazwakontr), telefon=str(telefon), email=str(email))
         if debug_mode == 1:
@@ -352,8 +355,8 @@ if potwierdzenie == "T" or potwierdzenie == "t":
         L[41] = kwotanaliczen
         L[42] = KwotaOplat
         L[43] = Saldo
-        if email != None:
-            L[44] = email
+        #if email != None:
+            #L[44] = email
 
         f = open(filepath, "a")
         f.write("\n")
@@ -399,6 +402,9 @@ if potwierdzenie == "T" or potwierdzenie == "t":
         file.close()  # close file and FTP
         session.quit()
         print("Przesłano")
+        print("Wywołuję akualizację danych na serwerze")
+        webbrowser.open(data_refresh_url)
+
     print("Program zakończył pracę sukcesem. Wyłączam za 3 sekundy")
     time.sleep(3)
 else:
