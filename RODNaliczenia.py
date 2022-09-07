@@ -9,7 +9,7 @@ import sys
 import webbrowser
 
 
-print("Generator raportu opłat i nadpłat działkowców ROD. Wersja 3.1")
+print("Generator raportu opłat i nadpłat działkowców ROD. Wersja 3.2")
 print("Copyright (C) 2021 Filip Napierała i Marianna Humska")
 print("Data aktualizacji: 05.09.2022r.")
 print("--------------------------------------------------------------------------------------------------------")
@@ -66,7 +66,7 @@ print("Najnowszy wyciąg z dnia: " + str(data_wyciagu))
 
 # progress bar
 print_bar = 0
-toolbar_width = 20
+toolbar_width = 30
 
 now = datetime.now()
 xml_doc = ET.Element('dzialki', data_teraz=str(now), data_wyciagu=str(data_wyciagu))
@@ -123,7 +123,7 @@ if potwierdzenie == "T" or potwierdzenie == "t":
         print_bar = print_bar + 1
 
         # Progress bar update:
-        if print_bar == 20:
+        if print_bar == 28:
             sys.stdout.write("-")
             sys.stdout.flush()
             print_bar = 0
