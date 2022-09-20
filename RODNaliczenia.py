@@ -355,6 +355,8 @@ if potwierdzenie == "T" or potwierdzenie == "t":
         L[41] = kwotanaliczen
         L[42] = KwotaOplat
         L[43] = Saldo
+        ET.SubElement(dzialka, 'Saldo', Saldo=str(Saldo))
+
         #if email != None:
             #L[44] = email
 
