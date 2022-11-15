@@ -9,8 +9,8 @@ import sys
 import webbrowser
 
 
-print("Generator raportu opłat i nadpłat działkowców ROD. Wersja 3.2")
-print("Copyright (C) 2021 Filip Napierała i Marianna Humska")
+print("Generator raportu opłat i nadpłat działkowców ROD. Wersja 3.3")
+print("Copyright (C) 2022 Filip Napierała i Marianna Humska")
 print("Data aktualizacji: 05.09.2022r.")
 print("--------------------------------------------------------------------------------------------------------")
 print("Niniejszy program jest wolnym oprogramowaniem - możesz go rozpowszechniać dalej i/lub modyfikować ")
