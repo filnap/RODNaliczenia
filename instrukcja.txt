@@ -1,17 +1,22 @@
-1. Program nale¿y uruchamiaæ na serwerze
-2. Nale¿y sprawdziæ dane zamieszczone w pliku "config.txt" aby upewniæ siê, ¿e s¹ takie same jak na serwerze (adres bazy, nazwa u¿ytkownika, has³o s¹ wpisane takie, jakie tworzone s¹ domyœlnie przez program DGCS)
-3. Nale¿y uruchomiæ program (RODNaliczeniaVX.X.exe)
-4. Program na pocz¹tku niczego nie wyœwietla, nie jest to b³¹d, jest to zaczytywanie danych do pamiêci
-5. Je¿eli program szybko siê zamyka, oznacza to, ¿e plik "config.txt" nie zosta³ prawid³owo zmodyfikowany, lub program napotka³ nieoczekiwany b³¹d (proszê wtedy o kontakt)
-6. Je¿eli program coœ wyœwietla, nale¿y upewniæ siê, ze plik "dane.txt" jest pusty, poniewa¿ nie jest on kasowany przy starcie programu
-7. Po wpisaniu "t" lub "T" program powinien zacz¹æ obliczenia, po zakoñczeniu sam siê zamkn¹æ
-8. Powstaje plik "dane.txt" ma on nastêpuj¹c¹ budowê:
-	a. pierwsza kolumna to numer dzia³ki
-	b. kolejne kolumny to kolejne typy naliczeñ
-	c. trzecia od koñca kolumna to suma naliczeñ
-	d. druga od koñca kolumna to suma wp³at
-	e. pierwsza od koñca kolumna to saldo (liczba ujemna oznacza nadp³atê)
-To jakie ID naliczenia odpowiada jakiemu naliczeniu nale¿y wyznaczyæ eksperymentalnie, gdy¿ ka¿dy Ogród dodane swoje naliczenia w innej kolejnoœci.
-9. Plik Bugs.txt zawiera informacje o znanych b³êdach programu, oraz tym co je wywo³uje.
+Instrukcja dotyczy wersji programu V3.3 a aplikacja testowana byÅ‚a na DGCS 22.27
+1. Program naleÅ¼y uruchamiaÄ‡ na serwerze
+2. NaleÅ¼y sprawdziÄ‡ dane zamieszczone w pliku "config.txt" aby upewniÄ‡ siÄ™, Å¼e sÄ… takie same jak na serwerze (adres bazy, nazwa uÅ¼ytkownika, hasÅ‚o sÄ… wpisane takie, jakie tworzone sÄ… domyÅ›lnie przez program DGCS). Aplikacja pozwala teÅ¼ wygenerowaÄ‡ plik XML i przesÅ‚aÄ‡ go automatycznie na serwer zewnÄ™trzny.
+3. NaleÅ¼y uruchomiÄ‡ program (RODNaliczeniaVX.X.exe)
+4. Program na poczÄ…tku niczego nie wyÅ›wietla, nie jest to bÅ‚Ä…d, jest to zaczytywanie danych do pamiÄ™ci
+5. JeÅ¼eli program szybko siÄ™ zamyka, oznacza to, Å¼e plik "config.txt" nie zostaÅ‚ prawidÅ‚owo zmodyfikowany, lub program napotkaÅ‚ nieoczekiwany bÅ‚Ä…d (proszÄ™ wtedy o kontakt)
+6. Plik "dane.txt" w aktualnej wersji jest kasowany przy starcie programu, a w jego miejsce powstaje nowy
+7. Po wpisaniu "t" lub "T" program powinien zaczÄ…Ä‡ obliczenia, po zakoÅ„czeniu sam siÄ™ zamknÄ…Ä‡ (moÅ¼liwy automatyczny start poprzez parametr "auto = 1")
+8. Powstaje plik "dane.txt" ma on nastÄ™pujÄ…cÄ… budowÄ™:
+	a. pierwsza kolumna to numer dziaÅ‚ki
+	b. kolejne kolumny to kolejne typy naliczeÅ„
+	c. czwarta od koÅ„ca kolumna to suma naliczeÅ„
+	d. trzecia od koÅ„ca kolumna to suma wpÅ‚at
+	e. druga od koÅ„ca kolumna to saldo (liczba ujemna oznacza nadpÅ‚atÄ™)
+	f. pierwsza od koÅ„ca kolumna to adres e-mail (w zaÅ‚oÅ¼eniu ma umoÅ¼liwiÄ‡ zautomatyzowanÄ… wysyÅ‚kÄ™ powiadomieÅ„ o zalegÅ‚oÅ›ci).
+To jakie ID naliczenia odpowiada jakiemu naliczeniu naleÅ¼y wyznaczyÄ‡ eksperymentalnie, gdyÅ¼ kaÅ¼dy OgrÃ³d dodane swoje naliczenia w innej kolejnoÅ›ci.
+MoÅ¼na to rÃ³wnieÅ¼ sprawdziÄ‡ w tablicy "@PZD_SLOOPLATY" wykorzystujÄ…c manager baz danych (np. darmowy DBeaver)
+9. Powstaje plik sample.xml
+Zawiera on informacjÄ™ o dacie ostatniego wprowadzonego wyciÄ…gu, odczytach energii elektrycznej, imieniu, nazwisku, telefonach, mailach dziaÅ‚kowcÃ³w, zalegÅ‚oÅ›ciach oraz saldzie dziaÅ‚ki. JeÅ¼eli parametr "ftp_enable = 1" to program sprÃ³buje przesÅ‚aÄ‡ plik po FTP.
+10. Plik Bugs.txt zawiera informacje o znanych bÅ‚Ä™dach programu, oraz tym co je wywoÅ‚uje.
 
 KONIEC INSTRUKCJI
